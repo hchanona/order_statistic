@@ -7,6 +7,22 @@ from scipy.stats import beta
 
 st.set_page_config(page_title="Ordenes Uniforme(0,1)", layout="wide")
 
+# -------- Apariencia (gráficos más pequeños) --------
+plt.rcParams.update({
+    "figure.figsize": (4.6, 3.0),   # ancho x alto en pulgadas (más pequeño)
+    "figure.dpi": 110,
+    "axes.titlesize": 11,
+    "axes.labelsize": 10,
+    "xtick.labelsize": 9,
+    "ytick.labelsize": 9,
+    "legend.fontsize": 9,
+    "lines.linewidth": 1.6
+})
+
+def small_fig():
+    # helper por si quieres forzar tamaño en cada plot
+    return plt.subplots(figsize=(4.6, 3.0), dpi=110)
+
 # =========================
 # Sidebar (parámetros)
 # =========================
@@ -88,27 +104,27 @@ st.markdown("---")
 # Gráfico: medias por orden
 # =========================
 st.subheader("Promedios por orden k")
-fig1, ax1 = plt.subplots()
-ax1.plot(k_vec, th_mean, label="Teórico", linewidth=2)
+fig1, ax1 = small_fig()
+ax1.plot(k_vec, th_mean, label="Teórico")
 ax1.plot(k_vec, emp_mean, label="Empírico", linestyle="--")
 ax1.set_xlabel("k")
 ax1.set_ylabel("Media del estadístico de orden")
 ax1.set_title("Medias: empírico vs teórico")
-ax1.legend()
-st.pyplot(fig1, clear_figure=True)
+ax1.legend(frameon=False)
+st.pyplot(fig1, clear_figure=True, use_container_width=False)
 
 # =========================
 # Gráfico: varianzas por orden
 # =========================
 st.subheader("Varianzas por orden k")
-fig2, ax2 = plt.subplots()
-ax2.plot(k_vec, th_var, label="Teórico", linewidth=2)
+fig2, ax2 = small_fig()
+ax2.plot(k_vec, th_var, label="Teórico")
 ax2.plot(k_vec, emp_var, label="Empírico", linestyle="--")
 ax2.set_xlabel("k")
 ax2.set_ylabel("Varianza del estadístico de orden")
 ax2.set_title("Varianzas: empírico vs teórico")
-ax2.legend()
-st.pyplot(fig2, clear_figure=True)
+ax2.legend(frameon=False)
+st.pyplot(fig2, clear_figure=True, use_container_width=False)
 
 st.markdown("---")
 
@@ -121,36 +137,36 @@ sample_k = X_sorted[:, k_focus - 1]
 
 col1, col2 = st.columns(2)
 
-# Parámetros para visuales adaptados a m
+# Parámetros para visuales adaptados a m (mantengo pequeño)
 bins = max(5, int(np.sqrt(m)))  # 5 mínimo; ~sqrt(m) recomendado
-pt_size = 12 if m <= 200 else 6 if m <= 800 else 4
+pt_size = 10 if m <= 200 else 6 if m <= 800 else 3
 
 # Histograma con PDF teórica
 with col1:
-    fig_h, ax_h = plt.subplots()
+    fig_h, ax_h = small_fig()
     ax_h.hist(sample_k, bins=bins, density=True, alpha=0.6)
     a, b = k_focus, N + 1 - k_focus
     xs = np.linspace(0, 1, 400)
-    ax_h.plot(xs, beta.pdf(xs, a, b), linewidth=2)
+    ax_h.plot(xs, beta.pdf(xs, a, b))
     ax_h.set_title("Histograma vs PDF Beta(k, N+1-k)")
     ax_h.set_xlabel("Valor")
     ax_h.set_ylabel("Densidad")
-    st.pyplot(fig_h, clear_figure=True)
+    st.pyplot(fig_h, clear_figure=True, use_container_width=False)
 
 # QQ-plot contra Beta teórica
 with col2:
-    fig_q, ax_q = plt.subplots()
+    fig_q, ax_q = small_fig()
     emp_sorted = np.sort(sample_k)
     u = (np.arange(1, m + 1) - 0.5) / m
     th_quant = beta.ppf(u, a, b)
-    ax_q.scatter(th_quant, emp_sorted, s=pt_size, alpha=0.6)
+    ax_q.scatter(th_quant, emp_sorted, s=pt_size, alpha=0.65)
     lim0 = min(th_quant[0], emp_sorted[0])
     lim1 = max(th_quant[-1], emp_sorted[-1])
-    ax_q.plot([lim0, lim1], [lim0, lim1], linewidth=2)
+    ax_q.plot([lim0, lim1], [lim0, lim1])
     ax_q.set_title("QQ-plot: empírico vs Beta(k, N+1-k)")
     ax_q.set_xlabel("Cuantiles teóricos")
     ax_q.set_ylabel("Cuantiles empíricos")
-    st.pyplot(fig_q, clear_figure=True)
+    st.pyplot(fig_q, clear_figure=True, use_container_width=False)
 
 # =========================
 # Notas teóricas
