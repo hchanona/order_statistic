@@ -12,12 +12,16 @@ st.set_page_config(page_title="Ordenes Uniforme(0,1)", layout="wide")
 # =========================
 st.sidebar.title("Parámetros de simulación")
 N = st.sidebar.number_input("Tamaño de muestra N (≥2)", min_value=2, max_value=2000, value=50, step=1)
-m = st.sidebar.number_input("Número de réplicas m", min_value=100, max_value=200000, value=10000, step=100)
+m = st.sidebar.number_input("Número de réplicas m (1–1000)", min_value=1, max_value=1000, value=500, step=1)
 seed = st.sidebar.number_input("Semilla (opcional)", min_value=0, max_value=10**9, value=1234, step=1)
 k_focus = st.sidebar.slider("Orden k para gráficos detallados", min_value=1, max_value=int(N), value=min(5, int(N)))
 
 st.sidebar.markdown("---")
 st.sidebar.caption("Tip: aumenta m para ver convergencia en promedios y varianzas.")
+
+# Mensaje informativo si m es pequeño
+if m < 50:
+    st.info("m es pequeño: la comparación empírica-teórica puede ser ruidosa. Sube m para ver mejor la convergencia.")
 
 # =========================
 # Utilidades teóricas
@@ -57,8 +61,10 @@ df = pd.DataFrame({
 })
 
 st.title("Estadísticos de orden para Uniforme(0,1)")
-st.write(f"Simulación con **m = {m}** réplicas y tamaño **N = {N}**. "
-         f"El orden k-th teórico ~ Beta(k, N+1−k).")
+st.write(
+    f"Simulación con **m = {m}** réplicas y tamaño **N = {N}**. "
+    f"El orden k-th teórico ~ Beta(k, N+1−k)."
+)
 
 # Resumen de errores
 rmse_mean = np.sqrt(np.mean((emp_mean - th_mean)**2))
@@ -115,10 +121,14 @@ sample_k = X_sorted[:, k_focus - 1]
 
 col1, col2 = st.columns(2)
 
+# Parámetros para visuales adaptados a m
+bins = max(5, int(np.sqrt(m)))  # 5 mínimo; ~sqrt(m) recomendado
+pt_size = 12 if m <= 200 else 6 if m <= 800 else 4
+
 # Histograma con PDF teórica
 with col1:
     fig_h, ax_h = plt.subplots()
-    ax_h.hist(sample_k, bins=40, density=True, alpha=0.6)
+    ax_h.hist(sample_k, bins=bins, density=True, alpha=0.6)
     a, b = k_focus, N + 1 - k_focus
     xs = np.linspace(0, 1, 400)
     ax_h.plot(xs, beta.pdf(xs, a, b), linewidth=2)
@@ -133,7 +143,7 @@ with col2:
     emp_sorted = np.sort(sample_k)
     u = (np.arange(1, m + 1) - 0.5) / m
     th_quant = beta.ppf(u, a, b)
-    ax_q.scatter(th_quant, emp_sorted, s=8, alpha=0.6)
+    ax_q.scatter(th_quant, emp_sorted, s=pt_size, alpha=0.6)
     lim0 = min(th_quant[0], emp_sorted[0])
     lim1 = max(th_quant[-1], emp_sorted[-1])
     ax_q.plot([lim0, lim1], [lim0, lim1], linewidth=2)
